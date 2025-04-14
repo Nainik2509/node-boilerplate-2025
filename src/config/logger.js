@@ -1,5 +1,5 @@
-import winston from 'winston';
-import envVars from './env-vars.js';
+import winston from "winston";
+import envVars from "./env-vars.js";
 
 const { format, transports } = winston;
 
@@ -27,12 +27,12 @@ const { format, transports } = winston;
  */
 const formatLogEntry = ({ timestamp, level, message, ...args }) => {
   // Simplify timestamp and remove timezone info for better readability
-  const simplifiedTimestamp = timestamp.slice(0, 19).replace('T', ' ');
+  const simplifiedTimestamp = timestamp.slice(0, 19).replace("T", " ");
 
   // Only include additional args if they exist
   const additionalArgs = Object.keys(args).length
-    ? JSON.stringify(args, null, envVars.env === 'development' ? 2 : 0)
-    : '';
+    ? JSON.stringify(args, null, envVars.env === "development" ? 2 : 0)
+    : "";
 
   return `${simplifiedTimestamp} ${level}: ${message} ${additionalArgs}`;
 };
@@ -40,10 +40,10 @@ const formatLogEntry = ({ timestamp, level, message, ...args }) => {
 // Combined format for logs
 const logFormat = format.combine(
   format.colorize({ all: true }), // Colorize entire message, not just level
-  format.timestamp({ format: 'isoDateTime' }),
+  format.timestamp({ format: "isoDateTime" }),
   format.align(),
   format.errors({ stack: true }), // Include error stacks if available
-  format.printf(formatLogEntry),
+  format.printf(formatLogEntry)
 );
 
 /**
@@ -60,24 +60,24 @@ const getTransports = () => {
     }),
   ];
 
-  if (envVars.env === 'production') {
+  if (envVars.env === "production") {
     baseTransports.push(
       new transports.File({
-        filename: 'logs/error.log',
-        level: 'error',
+        filename: "logs/error.log",
+        level: "error",
         maxsize: 5242880, // 5MB
         maxFiles: 5,
         format: format.combine(
           format.uncolorize(), // Remove colors for file logs
           format.timestamp(),
-          format.json(), // Structured logs for production analysis
+          format.json() // Structured logs for production analysis
         ),
       }),
       new transports.File({
-        filename: 'logs/combined.log',
+        filename: "logs/combined.log",
         maxsize: 5242880, // 5MB
         maxFiles: 5,
-      }),
+      })
     );
   }
 
@@ -86,11 +86,11 @@ const getTransports = () => {
 
 // Create logger instance
 const logger = winston.createLogger({
-  level: envVars.logLevel || 'info', // Default to 'info' if not specified
+  level: envVars.logLevel || "info", // Default to 'info' if not specified
   format: logFormat,
   transports: getTransports(),
   // In production, also log to console if we're in a cloud environment
-  silent: envVars.env === 'test', // Disable logging during tests
+  silent: envVars.env === "test", // Disable logging during tests
   exitOnError: false, // Don't crash on logger errors
 });
 
@@ -100,4 +100,3 @@ logger.stream = {
 };
 
 export default logger;
-

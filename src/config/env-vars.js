@@ -1,7 +1,7 @@
-import dotenv from 'dotenv';
-import fs from 'fs';
-import path, { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+import fs from "fs";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 
 /**
  * Get the current file and directory paths in ES module format
@@ -11,7 +11,7 @@ export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = dirname(__filename);
 
 // Load environment variables from .env file located two directories up
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv.config({ path: path.join(__dirname, "../../.env") });
 
 /**
  * Morgan configuration for production environment
@@ -22,8 +22,8 @@ const MorganProd = {
   skip(req, res) {
     return res.statusCode <= 400;
   },
-  stream: fs.createWriteStream(path.join(__dirname, '../../access.log'), {
-    flags: 'a', // 'a' means append (old data will be preserved)
+  stream: fs.createWriteStream(path.join(__dirname, "../../access.log"), {
+    flags: "a", // 'a' means append (old data will be preserved)
   }),
 };
 
@@ -35,27 +35,25 @@ const envVars = {
   // Basic app configuration
   env: process.env.NODE_ENV,
   port: process.env.PORT,
-  appName: 'AskAStudent',
+  appName: "AskAStudent",
 
   // Logging configuration
-  Level: process.env.NODE_ENV === 'production' ? 'error' : 'debug',
-  logFormat: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
-  morganConfig: process.env.NODE_ENV === 'production' ? MorganProd : {},
+  Level: process.env.NODE_ENV === "production" ? "error" : "debug",
+  logFormat: process.env.NODE_ENV === "production" ? "combined" : "dev",
+  morganConfig: process.env.NODE_ENV === "production" ? MorganProd : {},
 
   // Security-related configurations
   sessionSecret: process.env.SESSION_SECRET,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpirationInterval: process.env.JWT_EXPIRATION_MINUTES,
-  saltRound: process.env.NODE_ENV === 'development' ? 5 : 10, // Lower rounds for dev for faster hashing
+  saltRound: process.env.NODE_ENV === "development" ? 5 : 10, // Lower rounds for dev for faster hashing
 
   // Database configuration
   mongo: {
     uri:
-      process.env.NODE_ENV === 'development'
-        ? process.env.MONGO_URI_TEST
-        : process.env.MONGO_URI,
+      process.env.NODE_ENV === "development" ? process.env.MONGO_URI_TEST : process.env.MONGO_URI,
     options: {
-      autoIndex: process.env.NODE_ENV === 'development', // Auto-create indexes in dev only
+      autoIndex: process.env.NODE_ENV === "development", // Auto-create indexes in dev only
       maxPoolSize: 50, // Recommended pool size for most applications
       minPoolSize: 5, // Maintain minimum connections
       socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
@@ -70,4 +68,3 @@ const envVars = {
 };
 
 export default envVars;
-

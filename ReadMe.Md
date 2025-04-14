@@ -55,4 +55,3 @@ Git | Jira | Postman | Jest | Mongoose | Swagger
 [![Portfolio](https://img.shields.io/badge/Portfolio-8A2BE2?style=for-the-badge)](https://matching.turing.com/developer-resume-preview/8ed7846287fd93688f3ef472c809eff2d54b0eaa28d21a)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/nainik-mehta-25nk12/)
 [![GitHub](
-
