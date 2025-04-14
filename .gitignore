@@ -1,0 +1,81 @@
+### Node.js ###
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+*.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+### Environment ###
+.env
+
+### Testing ###
+coverage/
+.nyc_output/
+*.lcov
+jest*.config.js
+/.vscode-test/
+
+### IDEs ###
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+### System ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### MongoDB ###
+/data/db/
+*.ns
+*.0
+*.mongod
+*.wt
+*.lock
+*.sock
+*.pid
+mongo.pid
+storage.bson
+mongod.log
+
+### Client ###
+client/dist/
+client/.nuxt/
+client/.output/
+client/.svelte-kit/
+client/.astro/
+
+### Cache ###
+.temp/
+.cache/
+.adminbro/
+.serverless/
+.awcache/
