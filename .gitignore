@@ -41,7 +41,6 @@ jest*.config.js
 
 ### IDEs ###
 .idea/
-.vscode/
 *.suo
 *.ntvs*
 *.njsproj
