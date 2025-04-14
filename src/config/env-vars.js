@@ -39,7 +39,7 @@ const envVars = {
 
   // Logging configuration
   Level: process.env.NODE_ENV === 'production' ? 'error' : 'debug',
-  logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
+  logFormat: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
   morganConfig: process.env.NODE_ENV === 'production' ? MorganProd : {},
 
   // Security-related configurations

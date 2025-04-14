@@ -1,24 +1,35 @@
 {
   "name": "node-boilerplate",
   "version": "1.0.0",
-  "description": "Bolierplate code for NodeJs-express",
+  "description": "Boilerplate code for Node.js with Express",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "NODE_ENV=test jest --watchAll --coverage"
   },
   "author": "Nainik Mehta",
   "license": "MIT",
-  "type": "module",
   "dependencies": {
+    "compression": "^1.8.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "method-override": "^3.0.0",
     "mongoose": "^8.13.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "chalk": "^5.4.1",
+    "morgan": "^1.10.0",
     "nodemon": "^3.1.9"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
 
