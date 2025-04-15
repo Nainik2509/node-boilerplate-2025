@@ -1,9 +1,25 @@
-import { defineConfig } from "eslint/config";
 import js from "@eslint/js";
-import globals from "globals";
 import prettier from "eslint-plugin-prettier/recommended";
+import { defineConfig } from "eslint/config";
+import globals from "globals";
 
 export default defineConfig([
+  // Base ignore patterns (replaces .eslintignore)
+  {
+    ignores: [
+      "**/node_modules/",
+      "**/dist/",
+      "**/server/",
+      "**/.env*",
+      "**/*.log*",
+      "**/coverage/",
+      "**/.git/",
+      "**/.vscode/",
+      "**/.idea/",
+      "**/.DS_Store",
+    ],
+  },
+
   // Base JS configuration
   {
     files: ["**/*.{js,mjs,cjs}"],
@@ -26,10 +42,12 @@ export default defineConfig([
   // Custom rules
   {
     rules: {
-      "no-console": "warn",
-      "no-unused-vars": "warn",
+      "no-console": process.env.NODE_ENV === "production" ? "error" : "warn",
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "no-var": "error",
       "prefer-const": "error",
+      "arrow-body-style": ["error", "as-needed"],
+      eqeqeq: ["error", "always"],
     },
   },
 
@@ -40,6 +58,10 @@ export default defineConfig([
       globals: {
         ...globals.jest,
       },
+    },
+    rules: {
+      "no-unused-vars": "off",
+      "no-console": "off",
     },
   },
 ]);
