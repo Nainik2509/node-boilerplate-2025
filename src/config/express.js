@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import methodOverride from "method-override";
 import morgan from "morgan";
+import companyRoutes from "../api/routes/company.routes.js";
 import { applyErrorMiddleware } from "../helpers/error-handler.js";
 import envVars from "./env-vars.js";
 
@@ -279,6 +280,8 @@ app.use(
 if (envVars.env !== "test") {
   app.use(morgan(envVars.logFormat, envVars.morganConfig));
 }
+
+app.use("/api/v1/companies", companyRoutes);
 
 // =================================
 // 5. ERROR HANDLING (LAST)

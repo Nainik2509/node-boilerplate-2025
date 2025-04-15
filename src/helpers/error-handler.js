@@ -8,7 +8,7 @@ import {
   INTERNAL_SERVER_ERROR,
   NOT_FOUND,
   TOO_MANY_REQUESTS,
-} from "../utils/constants.js";
+} from "../utils/constants/constants.js";
 
 /**
  * Global error handler middleware
@@ -16,42 +16,40 @@ import {
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @param {NextFunction} next - Express next function
- * @returns {Response} JSON response with error details
+ * @returns {Response} JSON response with standardized error format
  */
 const errorHandler = (err, req, res) => {
   // Base error response structure
   const response = {
     success: false,
     code: err.status || INTERNAL_SERVER_ERROR,
-    message: err.message || "Internal Server Error",
-    ...(err.errors && { errors: err.errors }), // Only include errors if they exist
+    message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR,
+    ...(err.errors && { errors: err.errors }), // Include validation errors if they exist
   };
 
-  // Development mode enhancements
+  // Enhance error response in development environment
   if (envVars.env === "development") {
     response.stack = err.stack;
-    response.type = err.constructor.name; // Include error type for debugging
+    response.type = err.constructor.name;
+    response.path = req.originalUrl;
+    response.method = req.method;
   }
 
-  // Production mode sanitization
+  // Sanitize error response in production
   if (envVars.env === "production") {
     // Obfuscate server errors in production
     if (response.code >= 500) {
-      response.message = "Internal Server Error";
+      response.message = ErrorMessages.INTERNAL_SERVER_ERROR;
+      delete response.errors; // Remove detailed error info
     }
-
-    // Remove stack traces and detailed errors in production
-    delete response.stack;
-    if (response.code >= 500) {
-      delete response.errors;
-    }
+    delete response.stack; // Never expose stack traces in production
   }
 
   return res.status(response.code).json(response);
 };
 
 /**
- * Normalizes different error types to consistent APIError format
+ * Converts various error types to a standardized APIError format
  * @param {Error} err - The error object
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
@@ -59,63 +57,98 @@ const errorHandler = (err, req, res) => {
  * @returns {Function} Calls the errorHandler with converted error
  */
 const convertError = (err, req, res, next) => {
-  // Handle ValidationError (from express-validation)
+  // Handle Mongoose validation errors (schema validation failures)
+  if (err.name === "ValidationError") {
+    const errors = Object.entries(err.errors).map(([field, error]) => ({
+      location: "body",
+      message: error.message,
+      field,
+      type: error.kind, // Include validation type (e.g., 'required', 'minlength')
+    }));
+
+    return errorHandler(
+      new APIError({
+        message: ErrorTypes.VALIDATION,
+        status: BAD_REQUEST,
+        errors,
+        stack: envVars.env === "development" ? err.stack : undefined,
+      }),
+      req,
+      res,
+      next
+    );
+  }
+
+  // Handle express-validation errors (request payload validation)
   if (err instanceof ValidationError) {
-    const errors = err.details
-      ? Object.entries(err.details).flatMap(([location, details]) =>
-          details.map((e) => ({
-            location,
-            message: e.message.replace(/[^\w\s]/gi, ""), // Sanitize message
-            field: e.path?.[0] || "unknown",
-          }))
-        )
-      : err.errors?.map((e) => ({
-          location: e.location || "body",
-          message: e.messages?.[0]?.replace(/[^\w\s]/gi, "") || "Invalid field",
-          field: e.field?.[0] || "unknown",
-        })) || [];
+    const errors =
+      (err.details
+        ? Object.entries(err.details).flatMap(([location, details]) =>
+            details.map((e) => ({
+              location,
+              message: e.message.replace(/[^\w\s]/gi, ""),
+              field: e.path?.[0] || "unknown",
+            }))
+          )
+        : err.errors?.map((e) => ({
+            location: e.location || "body",
+            message: e.messages?.[0]?.replace(/[^\w\s]/gi, "") || ErrorMessages.INVALID_FIELD,
+            field: e.field?.[0] || "unknown",
+          }))) || [];
 
-    const convertedError = new APIError({
-      message: ErrorTypes.VALIDATION,
-      status: err.statusCode || BAD_REQUEST,
-      errors,
-      stack: envVars.env === "development" ? err.stack : undefined,
-    });
-    return errorHandler(convertedError, req, res, next);
+    return errorHandler(
+      new APIError({
+        message: ErrorTypes.VALIDATION,
+        status: err.statusCode || BAD_REQUEST,
+        errors,
+        stack: envVars.env === "development" ? err.stack : undefined,
+      }),
+      req,
+      res,
+      next
+    );
   }
 
-  // Convert non-APIError instances to APIError
+  // Convert generic errors to APIError format
   if (!(err instanceof APIError)) {
-    const convertedError = new APIError({
-      message: err.message,
-      status: err.status || INTERNAL_SERVER_ERROR,
-      stack: err.stack,
-      ...(err.errors && { errors: err.errors }),
-    });
-    return errorHandler(convertedError, req, res, next);
+    return errorHandler(
+      new APIError({
+        message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR,
+        status: err.status || INTERNAL_SERVER_ERROR,
+        stack: err.stack,
+        ...(err.errors && { errors: err.errors }),
+      }),
+      req,
+      res,
+      next
+    );
   }
 
-  // If it's already an APIError, pass it through
+  // If it's already an APIError, pass it through directly
   return errorHandler(err, req, res, next);
 };
 
 /**
- * Handles 404 Not Found errors
+ * Handles 404 Not Found errors for unmatched routes
  * @param {Request} req - Express request object
  * @param {Response} res - Express response object
  * @param {NextFunction} next - Express next function
  * @returns {Function} Calls the errorHandler with 404 error
  */
-const notFoundHandler = (req, res, next) => {
-  const err = new APIError({
-    message: ErrorMessages.NOT_FOUND,
-    status: NOT_FOUND,
-    // Additional context could be added here:
-    // path: req.originalUrl,
-    // method: req.method,
-  });
-  return errorHandler(err, req, res, next);
-};
+const notFoundHandler = (req, res, next) =>
+  errorHandler(
+    new APIError({
+      message: ErrorMessages.NOT_FOUND,
+      status: NOT_FOUND,
+      ...(envVars.env === "development" && {
+        path: req.originalUrl,
+        method: req.method,
+      }),
+    }),
+    req,
+    res,
+    next
+  );
 
 /**
  * Handles rate limit exceeded errors (429 Too Many Requests)
@@ -128,11 +161,13 @@ const rateLimitHandler = (req, res, next) => {
   const err = new APIError({
     message: ErrorMessages.RATE_LIMIT,
     status: TOO_MANY_REQUESTS,
-    // Could add rate limit details if available:
-    // limit: req.rateLimit.limit,
-    // current: req.rateLimit.current,
-    // remaining: req.rateLimit.remaining,
+    ...(envVars.env === "development" && {
+      limit: req.rateLimit?.limit,
+      current: req.rateLimit?.current,
+      remaining: req.rateLimit?.remaining,
+    }),
   });
+
   return errorHandler(err, req, res, next);
 };
 
@@ -141,16 +176,18 @@ const rateLimitHandler = (req, res, next) => {
  * @param {Express.Application} app - Express application instance
  */
 const applyErrorMiddleware = (app) => {
-  // Error conversion should be first to normalize errors
+  // The order of these middleware matters:
+
+  // 1. First, convert various error types to APIError format
   app.use(convertError);
 
-  // Specialized handlers for specific error cases
+  // 2. Specialized handlers for specific cases
   app.use(rateLimitHandler);
 
-  // 404 handler for unmatched routes (should be after all other routes)
+  // 3. Catch-all for unmatched routes (must be after all other routes)
   app.use(notFoundHandler);
 
-  // Generic error handler (should be last in the chain)
+  // 4. Final error handler (should be last in the chain)
   app.use(errorHandler);
 };
 

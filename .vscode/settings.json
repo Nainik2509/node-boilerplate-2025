@@ -4,15 +4,11 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
+    "source.fixAll": "always",
+    "source.fixAll.eslint": "always",
+    "source.organizeImports": "always"
   },
   "editor.wordWrap": "on",
-  "i18n-ally.localesPaths": [
-    "public/locales"
-  ],
-  "i18n-ally.keystyle": "nested",
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
